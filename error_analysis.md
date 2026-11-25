@@ -1,135 +1,136 @@
 # Error Analysis
 
-## 1. Ví dụ có EM = 0 nhưng F1 > 0
+## Phạm vi và cách phân loại
 
-Mẫu 1
-Question: Who discovered penicillin?
-Gold: Alexander Fleming
-Prediction: Scottish physician Alexander Fleming
-Giải thích: Mô hình lấy thừa chức danh đứng trước nên EM bằng 0, nhưng vẫn bao trọn tên đúng nên F1 đạt 0.67.
+Phân tích được tạo từ 2.000 dự đoán trong `artifacts/best_predictions.csv` của lần chạy lại (SQuAD v1.1 validation, seed 42, max_length=384). Mẫu lỗi được chọn trực tiếp từ các dòng có EM = 0; không dùng ví dụ tự tạo. Phân loại ranh giới dựa trên vị trí chuỗi prediction và gold xuất hiện trong context. Nếu context có nhiều lần xuất hiện, chọn occurrence gần vị trí gold nhất. Đây là heuristic phân tích, nên một số mẫu có thể được xếp vào nhóm wrong-span dù bản chất là distractor hoặc câu trả lời dài.
 
-Mẫu 2
-Question: Where is the headquarters of the UN located?
-Gold: New York City
-Prediction: New York
-Giải thích: Mô hình dừng sớm và thiếu từ City ở cuối, trùng 2 trên 3 từ nên F1 đạt 0.80 nhưng EM bằng 0.
+## Kết quả tổng hợp
 
-Mẫu 3
-Question: When did World War II end?
-Gold: September 2, 1945
-Prediction: 1945
-Giải thích: Mô hình chỉ trích xuất năm mà bỏ qua ngày tháng, đạt một phần thông tin đúng nên F1 đạt 0.50.
+- Số mẫu: 2000
+- EM = 0: 659 (32.95%)
+- EM = 0 và F1 > 0: 391 mẫu
+- EM = 0 và F1 = 0: 268 mẫu
 
-Mẫu 4
-Question: What process converts light energy into chemical energy?
-Gold: photosynthesis
-Prediction: the process of photosynthesis
-Giải thích: Mô hình lấy dư cụm từ dẫn nhập phía trước từ khóa chính nên chuỗi không khớp tuyệt đối, F1 đạt 0.50.
+| Nhóm lỗi (heuristic) | Số mẫu EM=0 |
+|---|---:|
+| Wrong start | 133 |
+| Wrong end | 96 |
+| Sai cả start/end | 74 |
+| Wrong span / distractor | 356 |
 
-Mẫu 5
-Question: What is the main component of Earth's atmosphere?
-Gold: nitrogen (78%)
-Prediction: nitrogen
-Giải thích: Mô hình trích xuất đúng tên chất khí nhưng bỏ qua phần số liệu phần trăm trong ngoặc, F1 đạt 0.67.
+Tổng nhóm trên bằng số mẫu EM=0. Nhãn wrong-span/distractor được gộp khi prediction và gold không giao nhau; để tách nguyên nhân ngữ nghĩa cần đọc context từng mẫu.
 
-## 2. Phân loại 15 mẫu lỗi
+## 5 ví dụ EM=0, F1>0 lấy từ dự đoán thực tế
 
-Nhóm 1: Wrong Start (5 mẫu)
+### Ví dụ 1
+- Question: In 1890, who did the university decide to team up with?
+- Gold: several regional colleges and universities
+- Prediction: University of Chicago
+- Nhóm: wrong_span_or_distractor
+- F1: 0.1538
 
-Mẫu 1
-Question: What city hosted the 2012 Summer Olympics?
-Gold: London
-Prediction: in London
-Loại lỗi: wrong start. Mô hình lấy gộp cả giới từ in đứng ngay trước tên thành phố.
+### Ví dụ 2
+- Question: What does LGM stands for?
+- Gold: Last Glacial Maximum
+- Prediction: Amazon rainforest vegetation over the last 21,000 years through the Last Glacial Maximum
+- Nhóm: wrong_start
+- F1: 0.4286
 
-Mẫu 2
-Question: Who wrote Pride and Prejudice?
-Gold: Jane Austen
-Prediction: author Jane Austen
-Loại lỗi: wrong start. Mô hình lấy dư danh từ chỉ nghề nghiệp đứng liền trước tên tác giả.
+### Ví dụ 3
+- Question: What is the paper written by Richard Karp in 1972 that ushered in a new era of understanding between intractability and NP-complete problems?
+- Gold: "Reducibility Among Combinatorial Problems"
+- Prediction: Reducibility
+- Nhóm: wrong_start_and_end
+- F1: 0.4000
 
-Mẫu 3
-Question: What currency is used in Japan?
-Gold: Japanese yen
-Prediction: yen
-Loại lỗi: wrong start. Mô hình bỏ sót tính từ chỉ quốc gia đứng đầu cụm danh từ.
+### Ví dụ 4
+- Question: What Lake in a German island Mainau receives a fraction of the Rhine's flow?
+- Gold: Lake Überlingen
+- Prediction: Überlingen
+- Nhóm: wrong_start
+- F1: 0.6667
 
-Mẫu 4
-Question: Which river flows through Egypt?
-Gold: Nile River
-Prediction: longest Nile River
-Loại lỗi: wrong start. Mô hình kéo nhầm tính từ bổ nghĩa phía trước vào điểm bắt đầu của đáp án.
+### Ví dụ 5
+- Question: How was the civil disobedience shown in Antigone?
+- Gold: obey her conscience rather than human law
+- Prediction: she is afraid of how her conscience will smite her if she does not do this.
+- Nhóm: wrong_span_or_distractor
+- F1: 0.2286
 
-Mẫu 5
-Question: What gas do plants absorb from the air?
-Gold: carbon dioxide
-Prediction: absorb carbon dioxide
-Loại lỗi: wrong start. Mô hình lấy nhầm động từ trùng với câu hỏi vào đầu đoạn trích xuất.
+## 15 mẫu lỗi tiêu biểu từ lần chạy
 
-Nhóm 2: Wrong End (5 mẫu)
+### Wrong start
 
-Mẫu 1
-Question: Where is Columbia University located?
-Gold: New York City
-Prediction: New York
-Loại lỗi: wrong end. Mô hình dừng sớm trước từ City vì New York đã là một địa danh quen thuộc.
+- **Question:** What does LGM stands for?
+  - Gold: Last Glacial Maximum
+  - Prediction: Amazon rainforest vegetation over the last 21,000 years through the Last Glacial Maximum
+  - F1: 0.4286
+- **Question:** What Lake in a German island Mainau receives a fraction of the Rhine's flow?
+  - Gold: Lake Überlingen
+  - Prediction: Überlingen
+  - F1: 0.6667
+- **Question:** Where do juvenile platyctenids live?
+  - Gold: among the plankton
+  - Prediction: bottom-dwelling platyctenids, the juveniles behave more like true larvae, as they live among the plankton
+  - F1: 0.2667
+- **Question:** When were Joseph Schumpeter and Norman Angell at their most prolific writing period?
+  - Gold: before World War I
+  - Prediction: 1872–1967). While these non-Marxist writers were at their most prolific before World War I
+  - F1: 0.4444
 
-Mẫu 2
-Question: Who was the first president of the US?
-Gold: George Washington
-Prediction: George
-Loại lỗi: wrong end. Mô hình ngắt sớm tại tên gọi thay vì lấy trọn cả họ và tên.
+### Wrong end
 
-Mẫu 3
-Question: What is the speed of light in vacuum?
-Gold: 299,792,458 meters per second
-Prediction: 299,792,458
-Loại lỗi: wrong end. Mô hình chỉ lấy phần con số mà bỏ rơi đơn vị đo lường phía sau.
+- **Question:** Name one country that banned boating, driving and flying on Sundays.
+  - Gold: Germany
+  - Prediction: Germany, Italy, Switzerland and Norway
+  - F1: 0.3333
+- **Question:** What topic do private bills typically have?
+  - Gold: large-scale development projects
+  - Prediction: large-scale development projects such as infrastructure projects that require the use of land or property
+  - F1: 0.3529
+- **Question:** What does the First Company Law Directive article 11 require?
+  - Gold: incorporations would only be nullified for a fixed list of reasons
+  - Prediction: incorporations
+  - F1: 0.1818
+- **Question:** What did Stiglitz present in 2009 regarding global inequality?
+  - Gold: evidence
+  - Prediction: evidence in 2009 that both global inequality and inequality within countries prevent growth by limiting aggregate demand
+  - F1: 0.2105
 
-Mẫu 4
-Question: Which company developed the iPhone?
-Gold: Apple Inc.
-Prediction: Apple
-Loại lỗi: wrong end. Mô hình bỏ qua phần hậu tố pháp lý Inc. ở cuối tên công ty.
+### Sai cả start/end
 
-Mẫu 5
-Question: What treaty ended World War I?
-Gold: Treaty of Versailles
-Prediction: Treaty
-Loại lỗi: wrong end. Mô hình dừng ngay tại danh từ chính mà thiếu cụm giới từ bổ nghĩa phía sau.
+- **Question:** What is the paper written by Richard Karp in 1972 that ushered in a new era of understanding between intractability and NP-complete problems?
+  - Gold: "Reducibility Among Combinatorial Problems"
+  - Prediction: Reducibility
+  - F1: 0.4000
+- **Question:** What did Warsz own?
+  - Gold: a village
+  - Prediction: Warsz was a 12th/13th-century nobleman who owned a village located at the modern-day site of Mariensztat neighbourhood.
+  - F1: 0.1333
+- **Question:** What kind of light is important for chloroplasts to divide?
+  - Gold: bright white light
+  - Prediction: white
+  - F1: 0.6667
+- **Question:** Why do carotenoids make leaves change color in the fall?
+  - Gold: their bright colors sometimes override the chlorophyll green
+  - Prediction: sometimes override the chlorophyll green, like during the fall, when the leaves of some land plants
+  - F1: 0.4000
 
-Nhóm 3: Wrong Span (5 mẫu)
+### Wrong span / distractor
 
-Mẫu 1
-Question: When was the Eiffel Tower completed?
-Gold: 1889
-Prediction: 1887
-Loại lỗi: distractor. Đoạn văn nhắc cả năm khởi công và năm hoàn thành, mô hình chọn nhầm mốc thời gian đầu tiên.
+- **Question:** In 1890, who did the university decide to team up with?
+  - Gold: several regional colleges and universities
+  - Prediction: University of Chicago
+  - F1: 0.1538
+- **Question:** At what address did Goldenson secure a new headquarters for ABC?
+  - Gold: 1330 Avenue of the Americas in Manhattan
+  - Prediction: 7 West 66th Street
+  - F1: 0.0000
+- **Question:** How was the civil disobedience shown in Antigone?
+  - Gold: obey her conscience rather than human law
+  - Prediction: she is afraid of how her conscience will smite her if she does not do this.
+  - F1: 0.2286
 
-Mẫu 2
-Question: Who succeeded Queen Victoria?
-Gold: Edward VII
-Prediction: Prince Albert
-Loại lỗi: distractor. Mô hình bị nhiễu bởi tên người chồng xuất hiện nhiều lần trong cùng đoạn văn.
+## Nhận xét
 
-Mẫu 3
-Question: What language is spoken in Brazil?
-Gold: Portuguese
-Prediction: Spanish
-Loại lỗi: multiple plausible spans. Đoạn văn nhắc đến nhiều ngôn ngữ ở Nam Mỹ nên mô hình chọn nhầm ngôn ngữ phổ biến hơn.
-
-Mẫu 4
-Question: Why did the Roman Empire fall?
-Gold: economic instability and invasions
-Prediction: high taxes
-Loại lỗi: partial answer. Đáp án chuẩn tổng hợp nhiều nguyên nhân nhưng mô hình chỉ lấy một ý nhỏ ở câu khác.
-
-Mẫu 5
-Question: What was the population in 2020?
-Gold: 8.4 million
-Prediction: 7.9 million
-Loại lỗi: long context. Số liệu năm 2020 nằm gần cuối đoạn văn dài nên mô hình chọn nhầm số liệu năm cũ ở đầu đoạn.
-
-## 3. So sánh Wrong Start và Wrong End
-
-Trong tổng số 484 mẫu dự đoán sai trên tập validation, lỗi wrong start xuất hiện 138 lần, nhiều hơn lỗi wrong end với 103 lần. Nguyên nhân chính là do đặc điểm ngữ pháp tiếng Anh thường đặt các từ bổ nghĩa như mạo từ, giới từ, tính từ hoặc chức danh ở phía trước danh từ chính, khiến mô hình dễ phân vân khi xác định điểm bắt đầu. Ngược lại, điểm kết thúc của cụm danh từ thường nằm ngay trước dấu câu nên mô hình dễ nhận biết và khóa ranh giới chính xác hơn.
+Các lỗi ranh giới vẫn xuất hiện khi prediction trích được một phần đáp án. Nhóm wrong-span/distractor chiếm nhiều nhất theo phép phân loại chuỗi ở trên; cần xem context để xác định chính xác lý do ngữ nghĩa của từng mẫu. EM đánh giá khớp hoàn toàn sau chuẩn hóa, còn F1 ghi nhận phần token giao nhau, vì vậy có 391 mẫu EM=0 nhưng F1>0 trong lần chạy này.

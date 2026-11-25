@@ -3,16 +3,15 @@
 
 ## 1. Cấu trúc thư mục Deliverables (`lab10/`)
 - `README.md`: Thông tin tái lập thực nghiệm (Reproducibility) và khai báo sử dụng AI.
+- `calculation.pdf`: Bài làm phần tính toán viết tay.
 - `prediction.md`: Các giả thuyết dự đoán trước khi chạy thực nghiệm.
 - `tokenizer_alignment.ipynb`: Triển khai Sliding Window (`stride=128`), ánh xạ Character-to-Token Span và kiểm thử 4 trường hợp biên.
 - `qa_model.py`: Định nghĩa kiến trúc `ExtractiveQAModel`, hàm chuẩn hóa EM/F1, `decode_best_span` và `keyword_overlap_baseline`.
 - `qa_finetuning.ipynb`: Pipeline huấn luyện, đánh giá trên SQuAD v1.1 (Experiments 1–5) và xuất biểu đồ.
 - `results.csv`: Bảng tổng hợp kết quả định lượng qua các thực nghiệm.
-- `learning_curves.png`: Đồ thị Training/Validation Loss và EM/F1 theo từng epoch.
+- `learning_curves.png`: Training loss và validation EM/F1 theo từng epoch; validation loss chưa được ghi trong lần chạy này.
 - `em_f1_analysis.png`: So sánh Baseline vs. Fine-tuned Transformer và phân bố `EM=0, F1>0`.
 - `answer_length_analysis.png`: Phân tích hiệu năng EM và F1 theo độ dài đáp án.
-### Kết quả chạy lại
-Ba cấu hình max_length 128/256/384 được fine-tune 3 epoch trên 15.000 mẫu train và đánh giá trên 2.000 mẫu validation. Các biểu đồ được tạo từ log thực tế. Validation loss không được ghi trong lần chạy này nên learning_curves.png chỉ thể hiện training loss, validation EM và F1.
 - `error_analysis.md`: Phân tích định tính và định lượng 15 mẫu lỗi (`wrong start`, `wrong end`, `wrong span`).
 - `document_qa.py`: Ứng dụng Mini Document QA trả lời câu hỏi trên tài liệu tùy chỉnh.
 - `reflection.md`: Bài viết tổng kết so sánh kiến trúc LAB 08 — LAB 09 — LAB 10.
