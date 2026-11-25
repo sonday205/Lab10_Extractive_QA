@@ -11,6 +11,10 @@
 - `learning_curves.png`: Đồ thị Training/Validation Loss và EM/F1 theo từng epoch.
 - `em_f1_analysis.png`: So sánh Baseline vs. Fine-tuned Transformer và phân bố `EM=0, F1>0`.
 - `answer_length_analysis.png`: Phân tích hiệu năng EM và F1 theo độ dài đáp án.
+- `artifacts/`: Kết quả lần chạy lại, gồm metrics, prediction CSV và các bảng phân tích theo experiment. Checkpoint mô hình không đưa lên repo do dung lượng lớn.
+
+### Kết quả chạy lại
+Ba cấu hình max_length 128/256/384 được fine-tune 3 epoch trên 15.000 mẫu train và đánh giá trên 2.000 mẫu validation. Các biểu đồ được tạo từ log thực tế. Validation loss không được ghi trong lần chạy này nên learning_curves.png chỉ thể hiện training loss, validation EM và F1.
 - `error_analysis.md`: Phân tích định tính và định lượng 15 mẫu lỗi (`wrong start`, `wrong end`, `wrong span`).
 - `document_qa.py`: Ứng dụng Mini Document QA trả lời câu hỏi trên tài liệu tùy chỉnh.
 - `reflection.md`: Bài viết tổng kết so sánh kiến trúc LAB 08 — LAB 09 — LAB 10.
